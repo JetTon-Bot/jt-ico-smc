@@ -115,7 +115,18 @@ global cell store::locked_amounts;
     force_chain(to_owner_address);
 
     load_data();
+    throw_unless(error::not_owner, equal_slices(store::owner_address, sender_address));
+
+    ;; Calculate locked amounts
+    cell locked_amounts = store::locked_amounts;
+    (locked_amounts, _, int locked_amount) = calculate_locked_amount(locked_amounts);
+    store::locked_amounts = locked_amounts;
+    store::balance -= jetton_amount;
+    throw_unless(733, store::balance - locked_amount >= 0);
+    throw_unless(error::balance_error, store::balance >= 0);
+
     if (equal_slices(to_owner_address, store::jetton_master_address)) {
+        store::balance += jetton_amount;
         burn_tokens(
             begin_cell()
                 .store_uint(query_id, 64)
@@ -127,20 +138,10 @@ global cell store::locked_amounts;
         return();
     }
 
-    throw_unless(error::not_owner, equal_slices(store::owner_address, sender_address));
-
-    ;; Calculate locked amounts
-    cell locked_amounts = store::locked_amounts;
-    (locked_amounts, _, int locked_amount) = calculate_locked_amount(locked_amounts);
-    store::locked_amounts = locked_amounts;
-    store::balance -= jetton_amount;
-    throw_unless(733, store::balance - locked_amount >= 0);
-    throw_unless(error::balance_error, store::balance >= 0);
-
     cell state_init = calculate_jetton_wallet_state_init(to_owner_address, store::jetton_master_address, store::jetton_wallet_code);
     slice to_wallet_address = calculate_jetton_wallet_address(state_init);
     slice response_address = in_msg_body~load_msg_addr();
-    cell custom_payload = in_msg_body~load_dict();
+    cell lockup_params = in_msg_body~load_dict();
     int forward_ton_amount = in_msg_body~load_coins();
     slice either_forward_payload = in_msg_body;
     var msg = begin_cell()
@@ -150,13 +151,13 @@ global cell store::locked_amounts;
             .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
             .store_ref(state_init);
     var msg_body = begin_cell()
-            .store_uint(op::transfer, 32)
+            .store_uint(op::internal_transfer, 32)
             .store_uint(query_id, 64)
             .store_coins(jetton_amount)
             .store_slice(store::owner_address)
             .store_slice(response_address)
             .store_coins(forward_ton_amount)
-            .store_uint(0, 1)
+            .store_dict(lockup_params)
             .store_slice(either_forward_payload)
             .end_cell();
 
@@ -304,7 +305,7 @@ global cell store::locked_amounts;
         return ();
     }
 
-    if (op == op::transfer) { ;; incoming transfer
+    if (op == op::internal_transfer) { ;; incoming transfer
         receive_tokens(in_msg_body, sender_address, my_balance, fwd_fee, msg_value);
         return ();
     }
