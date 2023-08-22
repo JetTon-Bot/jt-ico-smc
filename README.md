@@ -1,8 +1,16 @@
-# JettonVesting
+# JetTon-Promise
+
+## Features
+* Lockup with vesting
+* Swap to authentic JetTon
+* ICO with lockup period and vesting
+
+
 
 ## Project structure
 
--   `contracts` - source code of all the smart contracts of the project and their dependencies.
+-   `contracts/root` - implementation of root contract
+- `contracts/wallet` - implementation of wallet contract
 -   `wrappers` - wrapper classes (implementing `Contract` from ton-core) for the contracts, including any [de]serialization primitives and compilation functions.
 -   `tests` - tests for the contracts.
 -   `scripts` - scripts used by the project, mainly the deployment scripts.

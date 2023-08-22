@@ -36,6 +36,30 @@ export class JettonRoot implements Contract {
         });
     }
 
+    async sendMintJettons(provider: ContractProvider, via:Sender, to:Address, amount:bigint) {
+        const body = beginCell()
+            .storeUint(21, 32)
+            .storeUint(0, 64)
+            .storeAddress(to)
+            .storeCoins(toNano("0.05"))
+            .storeRef(
+                beginCell()
+                    .storeUint(0x178d4519, 32)
+                    .storeUint(0, 64)
+                    .storeCoins(amount)
+                    .storeAddress(this.address)
+                    .storeAddress(to)
+                    .storeCoins(0)
+                    .storeUint(0, 1)
+                .endCell()
+            ).endCell();
+        await provider.internal(via, {
+            value: BigInt(1e8),
+            sendMode: 1,
+            body: body,
+        })
+    }
+
     async send(provider: ContractProvider, via: Sender, value: bigint, body: Cell) {
         await provider.internal(via, {
             value,
