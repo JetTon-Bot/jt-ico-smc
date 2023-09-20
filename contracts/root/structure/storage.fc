@@ -9,19 +9,12 @@ global cell jtn::wallet_code;
 
 global slice swap::authentic_jwall_addr; ;; 267 bits
 global slice swap::promise_jwall_addr; ;; 267 bits
-global int swap::available_authentic_amount; ;; 124 bits
 
 global int ico::start_time; ;; 32 bits
 global int ico::end_time; ;; 32 bits
-global int ico::vesting_period; ;; 32 bits - 12 months maybe
+global int ico::max_months; ;; 4 bits
 
-global int ico::available_tokens; ;; 124 bits
 global int ico::redeemed_tokens; ;; 124 bits
-global cell ico::prices; ;; dict 
-;; min & max - in the currency we`re buying the jetton for
-global int ico::min_amount; ;; 124 bits
-global int ico::max_amount; ;; 124 bits
-global int ico::received_tokens; ;; 124 bits ;; received tokens, for example 1000 jUSDT
 
 () storage::init() impure inline_ref {
     ifnot(null?(init?)) {
@@ -42,7 +35,6 @@ global int ico::received_tokens; ;; 124 bits ;; received tokens, for example 100
 
     swap::authentic_jwall_addr = swap_data~load_msg_addr();
     swap::promise_jwall_addr = swap_data~load_msg_addr();  
-    swap::available_authentic_amount = swap_data~load_coins();
 
     slice ico_data = ds~load_ref().begin_parse();
 
@@ -50,16 +42,11 @@ global int ico::received_tokens; ;; 124 bits ;; received tokens, for example 100
 
     ico::start_time = time_info~load_uint(32);
     ico::end_time = time_info~load_uint(32);
-    ico::vesting_period = time_info~load_uint(32);
+    ico::max_months = time_info~load_uint(4);
 
     slice coins_info = ico_data~load_ref().begin_parse();
 
-    ico::available_tokens = coins_info~load_coins();
     ico::redeemed_tokens = coins_info~load_coins();
-    ico::prices = coins_info~load_dict();
-    ico::min_amount = coins_info~load_coins();
-    ico::max_amount = coins_info~load_coins();
-    ico::received_tokens = coins_info~load_coins();
 
     init? = true;
 }
@@ -77,7 +64,6 @@ cell storage::save_swap_data() inline_ref {
     return begin_cell()
         .store_slice(swap::authentic_jwall_addr)
         .store_slice(swap::promise_jwall_addr)
-        .store_coins(swap::available_authentic_amount)
     .end_cell();
 }
 
@@ -87,17 +73,11 @@ cell storage::save_ico_data() inline_ref {
             begin_cell()
                 .store_uint(ico::start_time, 32)
                 .store_uint(ico::end_time, 32)
-                .store_uint(ico::vesting_period, 32)
             .end_cell()
         )
         .store_ref(
             begin_cell()
-                .store_coins(ico::available_tokens)
                 .store_coins(ico::redeemed_tokens)
-                .store_dict(ico::prices)
-                .store_coins(ico::min_amount)
-                .store_coins(ico::max_amount)
-                .store_coins(ico::received_tokens)
             .end_cell()
         ).end_cell();
 
@@ -121,7 +101,6 @@ cell storage::save_ico_data() inline_ref {
                 begin_cell()
                     .store_slice(swap::authentic_jwall_addr)
                     .store_slice(swap::promise_jwall_addr)
-                    .store_coins(swap::available_authentic_amount)
                 .end_cell()
             )
             .store_ref(
@@ -130,17 +109,12 @@ cell storage::save_ico_data() inline_ref {
                         begin_cell()
                             .store_uint(ico::start_time, 32)
                             .store_uint(ico::end_time, 32)
-                            .store_uint(ico::vesting_period, 32)
+                            .store_uint(ico::max_months, 4)
                         .end_cell()
                     )
                     .store_ref(
                         begin_cell()
-                            .store_coins(ico::available_tokens)
                             .store_coins(ico::redeemed_tokens)
-                            .store_dict(ico::prices)
-                            .store_coins(ico::min_amount)
-                            .store_coins(ico::max_amount)
-                            .store_coins(ico::received_tokens)
                         .end_cell()
                     )
                 .end_cell()

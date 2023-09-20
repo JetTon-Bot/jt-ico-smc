@@ -12,11 +12,7 @@ export type JettonLockupConfig = {
     walletCode: Cell,
     startTime: number;
     endTime: number;
-    vestingPeriod: number;
-    prices: Price[];
-    availableTokens: bigint;
-    minAmount: bigint;
-    maxAmount: bigint;
+    maxMonths: number;
 };
 
 export type JettonGetInfo = {
@@ -27,40 +23,14 @@ export type JettonGetInfo = {
     walletCode: Cell;
     authenticJwall: Address;
     promiseJwall: Address;
-    availableAuthenticAmount: bigint;
     startTime: number;
     endTime: number;
-    vestingPeriod: number;
-    availableTokens: bigint;
+    maxMonths: number;
     redeemedTokens: bigint;
-    prices: Cell;
-    minAmount: bigint;
-    maxAmount: bigint;
-    receivedTokens: bigint;
 }
 
-function createPriceValue(): DictionaryValue<bigint> {
-    return {
-        serialize: (src, builder) => {
-            builder.storeCoins(src)
-        },
-        parse: (src) => {
-            return src.loadCoins()
-        },
-    }
-}
-
-function pricesToDict(prices: Price[]): Dictionary<number, bigint> {
-    let dict = Dictionary.empty(Dictionary.Keys.Uint(4), createPriceValue());
-    for (let i = 0; i < prices.length; i++) {
-        dict.set(prices[i].lockMonths, prices[i].price);
-    }
-    return dict;
-}
 
 export function jettonLockupConfigToCell(config: JettonLockupConfig): Cell {
-    const prices = pricesToDict(config.prices);
-    
     return beginCell()
         .storeInt(0, 2)
         .storeRef(
@@ -75,7 +45,6 @@ export function jettonLockupConfigToCell(config: JettonLockupConfig): Cell {
             beginCell()
                 .storeAddress(null)
                 .storeAddress(null)
-                .storeCoins(0)
             .endCell()
         )
         .storeRef(
@@ -84,16 +53,11 @@ export function jettonLockupConfigToCell(config: JettonLockupConfig): Cell {
                 beginCell()
                     .storeUint(config.startTime, 32)
                     .storeUint(config.endTime, 32)
-                    .storeUint(config.vestingPeriod, 32)
+                    .storeUint(config.maxMonths, 4)
                 .endCell()
             )
             .storeRef(
                 beginCell()
-                    .storeCoins(config.availableTokens)
-                    .storeCoins(0)
-                    .storeDict(prices)
-                    .storeCoins(config.minAmount)
-                    .storeCoins(config.maxAmount)
                     .storeCoins(0)
                 .endCell()
             )
@@ -117,18 +81,50 @@ export class JettonLockup implements Contract {
 
     async sendDeploy(provider: ContractProvider, via: Sender, authenticJwall: Address) {
         const body = beginCell()
-            .storeUint(1478, 32)
+            .storeUint(2001, 32)
             .storeUint(0, 64)
             .storeAddress(authenticJwall)
             .endCell();
 
 
-        const value = toNano('0.05')
+        const value = toNano('2')
         await provider.internal(via, {
             value,
             sendMode: 1,
             body: body,
         });
+    }
+
+    async sendMaintain(provider: ContractProvider, via: Sender, msg: Cell, mode: number) {
+        const body = beginCell()
+            .storeUint(2003, 32)
+            .storeUint(0, 64)
+            .storeUint(2003, 32)
+            .storeUint(mode, 8)
+            .storeRef(msg)
+            .endCell()
+        
+        await provider.internal(via, {
+            value: toNano('0.2'),
+            sendMode: 1,
+            body: body
+        })
+    }
+
+    async sendSetData(provider: ContractProvider, via: Sender, newData: Cell) {
+        const body = beginCell()
+            .storeUint(2003,32)
+            .storeUint(0, 64)
+            .storeUint(2004,32)
+            .storeMaybeRef(newData)
+            .storeMaybeRef(null)
+            .endCell()
+        
+        await provider.internal(via, {
+            value: toNano('0.2'),
+            sendMode: 1,
+            body: body
+        })
     }
 
     async send(provider: ContractProvider, via: Sender, value: bigint, body: Cell) {
@@ -139,18 +135,12 @@ export class JettonLockup implements Contract {
         });
     }
 
-    async sendBuyRequest(provider: ContractProvider, via: Sender, value: bigint, lockupMonths: number) {
-        const body = beginCell()
-            .storeUint(1487, 32)
-            .storeUint(0, 64)
-            .storeUint(lockupMonths, 4)
+    async bodyForLock(lockupPeriodMonths: number, receiver: Address): Promise<Cell> {
+        return beginCell()
+            .storeUint(2002, 32)
+            .storeUint(lockupPeriodMonths, 4)
+            .storeAddress(receiver)
             .endCell();
-
-        await provider.internal(via, {
-            value,
-            sendMode: 1,
-            body: body,
-        })
     }
 
     async getSupply(provider: ContractProvider) {
@@ -175,16 +165,10 @@ export class JettonLockup implements Contract {
             walletCode: stack.readCell(),
             authenticJwall: stack.readAddress(),
             promiseJwall: stack.readAddress(),
-            availableAuthenticAmount: stack.readBigNumber(),
             startTime: stack.readNumber(),
             endTime: stack.readNumber(),
-            vestingPeriod: stack.readNumber(),
-            availableTokens: stack.readBigNumber(),
+            maxMonths: stack.readNumber(),
             redeemedTokens: stack.readBigNumber(),
-            prices: stack.readCell(),
-            minAmount: stack.readBigNumber(),
-            maxAmount: stack.readBigNumber(),
-            receivedTokens: stack.readBigNumber()
         }
     }
 }

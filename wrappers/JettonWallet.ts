@@ -41,7 +41,7 @@ export class JettonWallet implements Contract {
         via: Sender,
         value: bigint,
         forwardValue: bigint,
-        forwardPayload: Cell | null,
+        forwardPayload: Cell,
         recipient: Address,
         amount: bigint
     ) {
@@ -55,7 +55,8 @@ export class JettonWallet implements Contract {
                 .storeAddress(via.address)
                 .storeUint(0, 1)
                 .storeCoins(forwardValue)
-                .storeMaybeRef(forwardPayload)
+                .storeBit(1)
+                .storeRef(forwardPayload)
                 .endCell(),
             value: value + forwardValue,
         });

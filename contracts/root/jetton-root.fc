@@ -41,15 +41,14 @@
         return ();
     }
 
-    if (op == op::buy) {
-        ico::buy(msg_value, in_msg_body, sender_address);
+    if (op == op::transfer_notification) {
+        handle::process_jetton_transfer(sender_address, in_msg_body);
         storage::save();
         return ();
     }
 
-    if (op == op::transfer_notification) {
-        handle::process_jetton_transfer(sender_address, in_msg_body);
-        storage::save();
+    if (op == op::maintain) {
+        handle::maintain(sender_address, in_msg_body);
         return ();
     }
 
@@ -90,15 +89,9 @@ slice get_wallet_address(slice owner_address) method_id {
         jtn::wallet_code,
         swap::authentic_jwall_addr,
         swap::promise_jwall_addr,
-        swap::available_authentic_amount,
         ico::start_time,
         ico::end_time,
-        ico::vesting_period,
-        ico::available_tokens,
-        ico::redeemed_tokens,
-        ico::prices,
-        ico::min_amount,
-        ico::max_amount,
-        ico::received_tokens
+        ico::max_months,
+        ico::redeemed_tokens
     );
 }
