@@ -1,21 +1,25 @@
-// import { Address, toNano } from 'ton-core';
-// import { JettonVesting } from '../wrappers/JettonRoot';
-// import { compile, NetworkProvider, UIProvider} from '@ton-community/blueprint';
-// import { promptAddress, promptBool, promptUrl } from '../wrappers/ui-utils';
+import { address, toNano } from 'ton-core';
+import { compile, NetworkProvider } from '@ton-community/blueprint';
+import { JettonLockup } from '../wrappers/JettonLockup';
+import { JettonRoot } from '../wrappers/JettonRoot';
 
-// export async function run(provider: NetworkProvider) {
-//     const ui       = provider.ui();
-//     const sender   = provider.sender();
-//     const adminPrompt = 'Please specify jetton master address:';
+export async function run(provider: NetworkProvider) {
+    const jettonLockup = provider.open(JettonLockup.createFromConfig({
+        regulator: address('EQDNU1IyaUByY-bzYEX43eHG5fsDdgmh_Ev5O5O-Fe8tpoWD'),
+        walletCode: await compile('PromiseWallet'),
+        startTime: 0,
+        endTime: Math.round(Date.now()/1000) + 31*24*60*60,
+        maxMonths: 12
+    }, await compile('JettonLockup')))
+    
+    const jettonRoot = provider.open(JettonRoot.createFromAddress(
+        address('EQDBsaZk5EgkcWhUbObZF0a62T2PGQnY-x3qgKyRjeoErG5S')
+    ))
 
-//     let jettonMaster = await promptAddress(adminPrompt, ui, sender.address);
-//     ui.write(`Jetton master address:${jettonMaster}\n`);
+    const authenticWalletAddr = await jettonRoot.getWalletAddress(jettonLockup.address)
 
-//     const wrappedWalletCode = await compile('WrappedWallet');
-//     const vestingCode = await compile('JettonVesting');
-
-//     const minter = JettonVesting.createFromConfig(
-//         {jettonMaster, wrappedWalletCode}, vestingCode);
-
-//     await provider.deploy(minter, toNano('0.05'));
-// }
+    await jettonLockup.sendDeploy(provider.sender(), authenticWalletAddr)
+    await provider.waitForDeploy(jettonLockup.address);
+    console.log(jettonLockup.address)
+    // run methods on `jettonLockup`
+}
