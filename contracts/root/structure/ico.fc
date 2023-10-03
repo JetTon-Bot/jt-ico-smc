@@ -22,6 +22,7 @@
     int time_now = now();
     throw_if(ext::start_time, time_now < ico::start_time);
     throw_if(ext::end_time, time_now > ico::end_time);
+    throw_if(ext::invalid_lockup_period, lockup_period_months == 0);
     int lockup_period_seconds = 0;
 
     if (lockup_period_months == 5) {
@@ -46,6 +47,8 @@
         )
         .store_uint(0, 1)
         .end_cell();
+
+    throw_if(ext::invalid_lockup_period, (time_now + lockup_period_seconds) == (time_now + lockup_period_seconds + lockup_period_seconds));
 
     ico::mint_tokens(receiver_address, jtn::wallet_code, coins::mint, master_msg);
 
