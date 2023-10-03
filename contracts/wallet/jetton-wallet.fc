@@ -1,5 +1,3 @@
-;; Simple jetton wallet contract by delpydoc@astralyx.dev
-
 ;; Storage TL-B Scheme;
 ;; storage#_ balance:Coins owner_address:MsgIntAddress jetton_master_address:MsgIntAddress jetton_wallet_code:^Cell locked_amounts:(HasmapE 16 LockInfo) = Storage;
 
@@ -46,9 +44,10 @@ global cell store::locked_amounts;
     );
 }
 
-(cell, int, int) calculate_unlocked_amount(cell locked_amounts) inline_ref {
+(cell, int, int, int) calculate_unlocked_amount(cell locked_amounts) inline_ref {
     int next_index = 0;
     int unlocked_amount_total = 0;
+    int locked_amount_total = 0;
     int cur_time = now();
 
     do {
@@ -59,6 +58,8 @@ global cell store::locked_amounts;
             int last_received = value~load_uint(32); ;; 32 bits
             int locked_amount = value~load_coins(); ;; max 124 bits
             int unlocked_amount = value~load_coins(); ;; max 124 bits
+
+            locked_amount_total += locked_amount;
 
             int tokens_per_second = locked_amount / (end_unlock_time - start_unlock_time); 
             if ((cur_time > start_unlock_time) & (cur_time > last_received) & (cur_time < end_unlock_time)) {
@@ -84,17 +85,17 @@ global cell store::locked_amounts;
                         .store_coins(unlocked_amount)
                         .end_cell().begin_parse()
                 );
+
             } elseif(cur_time >= end_unlock_time) {
                 int tokens_unlocked = locked_amount - unlocked_amount;
                 unlocked_amount_total += tokens_unlocked;
                 (locked_amounts, _) = locked_amounts.udict_delete?(16, k);
             }
 
-
             next_index = k + 1;
         }
     } until (~ f?);
-    return (locked_amounts, next_index, unlocked_amount_total);
+    return (locked_amounts, next_index, unlocked_amount_total, locked_amount_total);
 }
 
 () burn_tokens (slice in_msg_body, slice sender_address, int msg_value, int fwd_fee) impure inline {
@@ -107,7 +108,7 @@ global cell store::locked_amounts;
     ;; ignore custom payload
     ;; slice custom_payload = in_msg_body~load_dict();
     cell locked_amounts = store::locked_amounts;
-    (locked_amounts, _, int unlocked_amount) = calculate_unlocked_amount(locked_amounts);
+    (locked_amounts, _, int unlocked_amount, _) = calculate_unlocked_amount(locked_amounts);
     store::locked_amounts = locked_amounts;
     store::balance += unlocked_amount;
     store::balance -= jetton_amount;
@@ -146,7 +147,7 @@ global cell store::locked_amounts;
 
     ;; Calculate locked amounts
     cell locked_amounts = store::locked_amounts;
-    (locked_amounts, _, int unlocked_amount) = calculate_unlocked_amount(locked_amounts);
+    (locked_amounts, _, int unlocked_amount, _) = calculate_unlocked_amount(locked_amounts);
     store::locked_amounts = locked_amounts;
     store::balance += unlocked_amount;
     store::balance -= jetton_amount;
@@ -328,12 +329,13 @@ global cell store::locked_amounts;
     throw(ext::wrong_op);
 }
 
+;; поправить calculate_unlocked_amount. отдавать в смартконтракте на гетметоде все доступные токены + заблокированые, так как юзер не видит их в сканере
 (int, slice, slice, cell) get_wallet_data() method_id {
     load_data();
     cell locked_amounts = store::locked_amounts;
-    (_, _, int unlocked_amount) = calculate_unlocked_amount(locked_amounts);
+    (_, _, _, int locked_amount) = calculate_unlocked_amount(locked_amounts);
     return (
-        store::balance + unlocked_amount,
+        store::balance + locked_amount, ;; вместо unlocked_amount, нужет total_locked_amount
         store::owner_address,
         store::jetton_master_address,
         store::jetton_wallet_code
@@ -343,6 +345,6 @@ global cell store::locked_amounts;
 (cell, int) get_unlocked_amount() method_id {
     load_data();
     cell locked_amounts = store::locked_amounts;
-    (_, _, int unlocked_amount) = calculate_unlocked_amount(locked_amounts);
+    (_, _, int unlocked_amount, _) = calculate_unlocked_amount(locked_amounts);
     return (store::locked_amounts, unlocked_amount);
 }

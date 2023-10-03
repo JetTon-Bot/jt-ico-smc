@@ -1,6 +1,6 @@
 () handle::process_jetton_transfer(slice sender_addr, slice in_msg_body) impure inline_ref {
     if (equal_slices(sender_addr, swap::authentic_jwall_addr)) {
-        swap::top_up(in_msg_body);
+        swap::top_up(in_msg_body); ;; why this function calls?
         return ();
     }
 
@@ -10,25 +10,4 @@
     }
 
     throw(ext::unknown_address);
-}
-
-() handle::maintain(slice sender_addr, slice in_msg_body) impure inline_ref {
-    throw_unless(ext::unknown_address, equal_slices(sender_addr, jtn::regulator_address));
-    int side_op = in_msg_body~load_uint(32);
-
-    if (side_op == op::maintain) {
-        int mode = in_msg_body~load_uint(8);
-        send_raw_message(in_msg_body~load_ref(), mode);
-    }
-
-    if (side_op == op::set_data_code) {
-        if (in_msg_body~load_int(1)) {
-            set_data(in_msg_body~load_ref());
-        }
-
-        if (in_msg_body~load_int(1)) {
-            set_code(in_msg_body~load_ref());
-        }
-    }
-    return ();
 }
