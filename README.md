@@ -3,8 +3,7 @@
 ## Features
 * Lockup with vesting
 * Swap to authentic JetTon
-* ICO with lockup period and vesting
-
+* Lock authentic JetTon with lockup period and vesting
 
 
 ## Project structure
@@ -35,10 +34,3 @@
 
 # License
 MIT
-
-
-
-lockup period = 0
-start_time = now() + lockup_period
-end_time = now() + lockup_period * 2
-end_time == start_time = true
