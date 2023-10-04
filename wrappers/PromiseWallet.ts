@@ -1,5 +1,5 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Dictionary, DictionaryValue, Sender, SendMode, toNano} from 'ton-core';
-import { Builder } from 'ton3';
+import { Builder } from 'ton-core';
 import { serialize } from 'v8';
 
 export type lockedAmount = {

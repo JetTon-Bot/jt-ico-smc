@@ -47,11 +47,6 @@
         return ();
     }
 
-    if (op == op::maintain) {
-        handle::maintain(sender_address, in_msg_body);
-        return ();
-    }
-
     if (op == op::excesses) { return (); }
 
     if (op == op::burn_notification) {
