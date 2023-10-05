@@ -5,6 +5,8 @@ import { JettonRoot } from '../wrappers/JettonRoot';
 
 export async function run(provider: NetworkProvider) {
     const jettonLockup = provider.open(JettonLockup.createFromConfig({
+        name: "Wrapped Jetton",
+        symbol: "WRAP",
         regulator: address('EQDNU1IyaUByY-bzYEX43eHG5fsDdgmh_Ev5O5O-Fe8tpoWD'),
         walletCode: await compile('PromiseWallet'),
         startTime: 0,

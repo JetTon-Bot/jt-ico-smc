@@ -1,6 +1,16 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Dictionary, DictionaryValue, Sender, toNano} from 'ton-core';
 import { Builder } from 'ton-core';
 import { serialize } from 'v8';
+import crypto from 'crypto';
+
+function sha256Hash(input: string): bigint {
+    const hash = crypto.createHash('sha256');
+    hash.update(input);
+    const hashBuffer = hash.digest();
+    const hashHex = hashBuffer.toString('hex');
+    const numericHash = BigInt('0x' + hashHex);
+    return numericHash;
+}
 
 export type Price = {
     lockMonths: number;
@@ -8,6 +18,8 @@ export type Price = {
 };
 
 export type JettonLockupConfig = {
+    name: string;
+    symbol: string;
     regulator: Address;
     walletCode: Cell,
     startTime: number;
@@ -31,13 +43,28 @@ export type JettonGetInfo = {
 
 
 export function jettonLockupConfigToCell(config: JettonLockupConfig): Cell {
+
+    const contentDict = Dictionary.empty<bigint, Cell>();
+
+    contentDict.set(sha256Hash('name'),
+        beginCell().storeUint(0, 8).storeStringTail(config.name).endCell()
+    );
+    contentDict.set(sha256Hash('symbol'),
+        beginCell().storeUint(0, 8).storeStringTail(config.symbol).endCell()
+    );
+
     return beginCell()
         .storeInt(0, 2)
         .storeRef(
             beginCell()
                 .storeCoins(0)
                 .storeAddress(config.regulator)
-                .storeRef(beginCell().endCell())
+                .storeRef(
+                    beginCell()
+                        .storeUint(0, 8)
+                        .storeDict(contentDict, Dictionary.Keys.BigUint(256), Dictionary.Values.Cell())
+                    .endCell()
+                )
                 .storeRef(config.walletCode)
             .endCell()
         )
