@@ -108,7 +108,14 @@ export class PromiseWallet implements Contract {
 
     async getUnlockedAmount(provider: ContractProvider): Promise<getUnlockedAmountInfo> {
         const stack = (await provider.get("get_unlocked_amount", [])).stack
-        const lockedAmounts = stack.readCell().beginParse().loadDictDirect(Dictionary.Keys.Uint(16), createDictValue()).values()
+
+        let lockedAmounts: lockedAmount[];
+
+        try {
+            lockedAmounts = stack.readCell().beginParse().loadDictDirect(Dictionary.Keys.Uint(16), createDictValue()).values();
+        } catch {
+            lockedAmounts = [];
+        }
 
         return {
             lockedAmounts: lockedAmounts,
