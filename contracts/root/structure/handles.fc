@@ -1,6 +1,6 @@
 () handle::process_jetton_transfer(slice sender_addr, slice in_msg_body) impure inline_ref {
     if (equal_slices(sender_addr, swap::authentic_jwall_addr)) {
-        swap::top_up(in_msg_body); ;; why this function calls?
+        ico::lock_tokens(in_msg_body);
         return ();
     }
 

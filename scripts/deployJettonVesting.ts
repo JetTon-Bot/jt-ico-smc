@@ -5,10 +5,10 @@ import { JettonRoot } from '../wrappers/JettonRoot';
 
 export async function run(provider: NetworkProvider) {
     const jettonLockup = provider.open(JettonLockup.createFromConfig({
-        name: "Some J",
-        symbol: "J",
+        name: "Test Promise Jetton",
+        symbol: "TestPJetton",
         image: "https://raw.githubusercontent.com/JetTon-Bot/JetTon/main/jetton-256.png",
-        description: "Description of J",
+        description: "Description of test",
         regulator: address('EQDNU1IyaUByY-bzYEX43eHG5fsDdgmh_Ev5O5O-Fe8tpoWD'),
         walletCode: await compile('PromiseWallet'),
         startTime: 0,
@@ -17,7 +17,7 @@ export async function run(provider: NetworkProvider) {
     }, await compile('JettonLockup')))
     
     const jettonRoot = provider.open(JettonRoot.createFromAddress(
-        address('EQDBsaZk5EgkcWhUbObZF0a62T2PGQnY-x3qgKyRjeoErG5S')
+        address('EQAQXlWJvGbbFfE8F3oS8s87lIgdovS455IsWFaRdmJetTon')
     ))
 
     const authenticWalletAddr = await jettonRoot.getWalletAddress(jettonLockup.address)

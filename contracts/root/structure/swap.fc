@@ -1,17 +1,3 @@
-() swap::top_up(slice in_msg_body) impure inline_ref {
-    int amount = in_msg_body~load_coins();
-    slice sender_addr = in_msg_body~load_msg_addr();
-
-    cell fwd_payload = in_msg_body~load_maybe_ref();
-
-    if (~ fwd_payload.null?()) {
-        ico::lock_tokens(fwd_payload.begin_parse(), amount);
-        return ();
-    }
-    return ();
-}
-
-
 () swap::swap_to_authentic(slice in_msg_body) impure inline_ref {
     int amount = in_msg_body~load_coins();
     slice sender = in_msg_body~load_msg_addr();

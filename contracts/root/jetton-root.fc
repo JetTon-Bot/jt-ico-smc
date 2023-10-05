@@ -1,7 +1,4 @@
-;; Jetton PM Contract v1 by delpydoc@astralyx.dev
 
-;; Storage TL-B Scheme;
-;; storage#_ jetton_master:MsgIntAddress jetton_wallet:MsgIntAddress total_supply:Coins wrapped_wallet_code:^Cell = Storage;
 
 #include "../imports/stdlib.fc";
 #include "../imports/constants.fc";
@@ -13,12 +10,6 @@
 #include "./structure/swap.fc";
 #include "./structure/handles.fc";
 
-{-
-    [+] ICO functional
-    [+] Check what ICO type we have Jettons or Tons
-    [+] Mint jettons with lockup and vesting
-    [+] Check if we don`t have lockup and vesting, just send jettons without lockup
--}
 
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
     slice cs = in_msg_full.begin_parse();
