@@ -58,7 +58,7 @@ describe('jetton lockup', () => {
             regulator: owner.address,
             walletCode: promiseWalletCode,
             startTime: blockchain.now! + 120,
-            endTime: blockchain.now! + 240,
+            endTime: blockchain.now! + 1200,
             maxMonths: 12,
         };
 
@@ -1867,7 +1867,7 @@ describe('jetton lockup', () => {
 
         })
 
-        it('should ', async () => {
+        it('should lock for 5 mins, then withdraw, then lock again and then withdraw', async () => {
             const dataBeforeLock = await jettonLockup.getContractData()
             blockchain.now = dataBeforeLock.startTime
 
@@ -1914,13 +1914,111 @@ describe('jetton lockup', () => {
             blockchain.now = lockedAmountsAfter.lockedAmounts[0].endUnlockTime + 1
             const lockedAmountsAfterTime = await userJettonPromiseWallet.getUnlockedAmount();
 
-            const swapTxSecond = await userJettonPromiseWallet.sendTransfer(
+            const swapTx = await userJettonPromiseWallet.sendTransfer(
                 user.getSender(),
                 BigInt(1e8),
                 BigInt(1e8),
                 null,
                 jettonLockup.address,
                 lockedAmountsAfterTime.unlockedAmount,
+            )
+
+            expect(swapTx.transactions).toHaveTransaction({
+                from: user.address,
+                to: userJettonPromiseWallet.address,
+                success: true,
+            })
+
+            expect(swapTx.transactions).toHaveTransaction({
+                from: userJettonPromiseWallet.address,
+                to: jettonLockupPromiseWallet.address,
+                success: true,
+            })
+
+            expect(swapTx.transactions).toHaveTransaction({
+                from: jettonLockupPromiseWallet.address,
+                to: jettonLockup.address,
+                success: true,
+            })
+
+            expect(swapTx.transactions).toHaveTransaction({
+                from: jettonLockup.address,
+                to: jettonLockupAuthenticWallet.address,
+                success: true,
+            })
+
+            expect(swapTx.transactions).toHaveTransaction({
+                from: jettonLockupAuthenticWallet.address,
+                to: userJettonWallet.address,
+                success: true,
+            })
+
+            expect(swapTx.transactions).toHaveTransaction({
+                from: userJettonWallet.address,
+                to: user.address,
+                success: true
+            })
+
+            const lockupInfoAfterSecondSwap = await jettonLockup.getContractData()
+            expect(lockupInfoAfterSecondSwap.totalSupply).toBe(BigInt(0))
+
+            const userJettonBalanceAfterSecondSwap = await userJettonWallet.getJettonBalance()
+            expect(userJettonBalanceAfterSecondSwap).toBe(BigInt(1e9 * 1100))
+
+            const jettonAuthenticBalanceAfterSecondSwap = await jettonLockupAuthenticWallet.getJettonBalance()
+            expect(jettonAuthenticBalanceAfterSecondSwap).toBe(BigInt(0))
+
+            const lockedAmountsAfterSwap = await userJettonPromiseWallet.getUnlockedAmount();
+            expect(lockedAmountsAfterSwap.unlockedAmount).toBe(BigInt(0))
+
+            const lockTxSecond = await ownerJettonWallet.sendTransfer(
+                owner.getSender(),
+                BigInt(3e8),
+                BigInt(2e8),
+                await jettonLockup.bodyForLock(5, user.address),
+                jettonLockup.address,
+                BigInt(1e11)
+            )
+
+            expect(lockTxSecond.transactions).toHaveTransaction({
+                from: owner.address,
+                to: ownerJettonWallet.address,
+                success: true
+            })
+
+            expect(lockTxSecond.transactions).toHaveTransaction({
+                from: ownerJettonWallet.address,
+                to: jettonLockupAuthenticWallet.address,
+                success: true
+            })
+
+            expect(lockTxSecond.transactions).toHaveTransaction({
+                from: jettonLockupAuthenticWallet.address, 
+                to: jettonLockup.address,
+                success: true
+            })
+
+            expect(lockTxSecond.transactions).toHaveTransaction({
+                from: jettonLockup.address,
+                to: userJettonPromiseWallet.address,
+                success: true,
+            })
+
+            const lockedAmountsAfterSecond = await userJettonPromiseWallet.getUnlockedAmount();
+            expect(lockedAmountsAfterSecond.lockedAmounts[0].lockedAmount).toBe(BigInt(1e11));
+
+            blockchain.now = lockedAmountsAfterSecond.lockedAmounts[0].endUnlockTime + 1
+            const dataAfterBuySecond = await jettonLockup.getContractData();
+            expect(dataAfterBuySecond.totalSupply).toBe(BigInt(1e11));
+            expect(dataAfterBuySecond.redeemedTokens).toBe(BigInt(2e11));
+
+            const swapTxSecond = await userJettonPromiseWallet.sendTransfer(
+                user.getSender(),
+                BigInt(1e8),
+                BigInt(1e8),
+                null,
+                jettonLockup.address,
+                lockedAmountsAfterSecond.lockedAmounts[0].lockedAmount,
             )
 
             expect(swapTxSecond.transactions).toHaveTransaction({
@@ -1957,60 +2055,11 @@ describe('jetton lockup', () => {
                 from: userJettonWallet.address,
                 to: user.address,
                 success: true
-            })
+            }) 
 
-            const lockupInfoAfterSecondSwap = await jettonLockup.getContractData()
-            expect(lockupInfoAfterSecondSwap.totalSupply).toBe(BigInt(0))
-
-            const userJettonBalanceAfterSecondSwap = await userJettonWallet.getJettonBalance()
-            expect(userJettonBalanceAfterSecondSwap).toBe(BigInt(1e9 * 1100))
-
-            const jettonAuthenticBalanceAfterSecondSwap = await jettonLockupAuthenticWallet.getJettonBalance()
-            expect(jettonAuthenticBalanceAfterSecondSwap).toBe(BigInt(0))
-
-            const data_locked_amounts = await userJettonPromiseWallet.getUnlockedAmount();
-            console.log(data_locked_amounts);
-
-            const lockTxSecond = await ownerJettonWallet.sendTransfer(
-                owner.getSender(),
-                BigInt(3e8),
-                BigInt(2e8),
-                await jettonLockup.bodyForLock(3, user.address),
-                jettonLockup.address,
-                BigInt(1e11)
-            )
-
-            expect(lockTxSecond.transactions).toHaveTransaction({
-                from: owner.address,
-                to: ownerJettonWallet.address,
-                success: true
-            })
-
-            expect(lockTxSecond.transactions).toHaveTransaction({
-                from: ownerJettonWallet.address,
-                to: jettonLockupAuthenticWallet.address,
-                success: true
-            })
-
-            expect(lockTxSecond.transactions).toHaveTransaction({
-                from: jettonLockupAuthenticWallet.address, 
-                to: jettonLockup.address,
-                success: true
-            })
-
-            expect(lockTxSecond.transactions).toHaveTransaction({
-                from: jettonLockup.address,
-                to: userJettonPromiseWallet.address,
-                success: true,
-            })
-
-            const lockedAmountsAfterSecond = await userJettonPromiseWallet.getUnlockedAmount();
-            expect(lockedAmountsAfterSecond.lockedAmounts[0].lockedAmount).toBe(BigInt(1e11));
-
-            const dataAfterBuySecond = await jettonLockup.getContractData();
-            expect(dataAfterBuySecond.totalSupply).toBe(BigInt(1e11));
-            expect(dataAfterBuySecond.redeemedTokens).toBe(BigInt(1e11));
-
+            const lockedAmountsAfterSecondSwap = await userJettonPromiseWallet.getUnlockedAmount();
+            console.log(lockedAmountsAfterSecondSwap)
+            expect(lockedAmountsAfterSecondSwap.unlockedAmount).toBe(BigInt(0))
 
 
         })
