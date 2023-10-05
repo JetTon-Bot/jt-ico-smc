@@ -125,7 +125,7 @@ export class JettonLockup implements Contract {
             .endCell();
 
 
-        const value = toNano('0.07')
+        const value = toNano('1')
         await provider.internal(via, {
             value,
             sendMode: 1,
