@@ -329,13 +329,12 @@ global cell store::locked_amounts;
     throw(ext::wrong_op);
 }
 
-;; поправить calculate_unlocked_amount. отдавать в смартконтракте на гетметоде все доступные токены + заблокированые, так как юзер не видит их в сканере
 (int, slice, slice, cell) get_wallet_data() method_id {
     load_data();
     cell locked_amounts = store::locked_amounts;
     (_, _, _, int locked_amount) = calculate_unlocked_amount(locked_amounts);
     return (
-        store::balance + locked_amount, ;; вместо unlocked_amount, нужет total_locked_amount
+        store::balance + locked_amount,
         store::owner_address,
         store::jetton_master_address,
         store::jetton_wallet_code
