@@ -53,8 +53,10 @@ describe('jetton lockup', () => {
         ownerJettonWallet = blockchain.openContract(JettonWallet.createFromAddress(await jettonRoot.getWalletAddress(owner.address)));
 
         const lockupConfig = {
-            name: "Wrapped Jetton",
-            symbol: "WRAP",
+            name: "Promise $JETTON",
+            symbol: "pJETTON",
+            image: "https://raw.githubusercontent.com/JetTon-Bot/JetTon/main/jetton-256.png",
+            description: "Promise $JETTON of https://JetTon.Fund Platform",
             regulator: owner.address,
             walletCode: promiseWalletCode,
             startTime: blockchain.now! + 120,

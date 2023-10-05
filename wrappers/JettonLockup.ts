@@ -20,6 +20,8 @@ export type Price = {
 export type JettonLockupConfig = {
     name: string;
     symbol: string;
+    image: string;
+    description: string;
     regulator: Address;
     walletCode: Cell,
     startTime: number;
@@ -49,7 +51,16 @@ export function jettonLockupConfigToCell(config: JettonLockupConfig): Cell {
     contentDict.set(sha256Hash('name'),
         beginCell().storeUint(0, 8).storeStringTail(config.name).endCell()
     );
+
     contentDict.set(sha256Hash('symbol'),
+        beginCell().storeUint(0, 8).storeStringTail(config.symbol).endCell()
+    );
+
+    contentDict.set(sha256Hash('image'),
+        beginCell().storeUint(0, 8).storeStringTail(config.symbol).endCell()
+    );
+
+    contentDict.set(sha256Hash('description'),
         beginCell().storeUint(0, 8).storeStringTail(config.symbol).endCell()
     );
 
