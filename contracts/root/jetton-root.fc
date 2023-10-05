@@ -34,6 +34,7 @@
     
     int op = in_msg_body~load_uint(32);
     int query_id = in_msg_body~load_uint(64);
+
     if (jtn::is_initialized? == 0) {
         throw_if(ext::invalid_op, op != op::init_storage);
         constructor::init(in_msg_body, sender_address);

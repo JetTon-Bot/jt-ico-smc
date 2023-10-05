@@ -57,11 +57,11 @@ export function jettonLockupConfigToCell(config: JettonLockupConfig): Cell {
     );
 
     contentDict.set(sha256Hash('image'),
-        beginCell().storeUint(0, 8).storeStringTail(config.symbol).endCell()
+        beginCell().storeUint(0, 8).storeStringTail(config.image).endCell()
     );
 
     contentDict.set(sha256Hash('description'),
-        beginCell().storeUint(0, 8).storeStringTail(config.symbol).endCell()
+        beginCell().storeUint(0, 8).storeStringTail(config.description).endCell()
     );
 
     return beginCell()
@@ -125,7 +125,7 @@ export class JettonLockup implements Contract {
             .endCell();
 
 
-        const value = toNano('1')
+        const value = toNano('0.07')
         await provider.internal(via, {
             value,
             sendMode: 1,

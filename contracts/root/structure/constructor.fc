@@ -1,15 +1,6 @@
-cell constructor::build_content_cell() {
-    cell content_dict = new_dict();
-    content_dict~udict_set_ref(256, "name"H, begin_cell().store_uint(0, 8).store_slice("Wrapped Jetton").end_cell());
-    content_dict~udict_set_ref(256, "symbol"H, begin_cell().store_uint(0, 8).store_slice("WRAP").end_cell());
-    cell content = begin_cell().store_uint(0, 8).store_dict(content_dict).end_cell();
-    return content;
-}
-
 () constructor::init(slice in_msg_body, slice sender_addr) impure inline_ref {
     throw_unless(ext::invalid_address, equal_slices(sender_addr, jtn::regulator_address));
     swap::promise_jwall_addr = calculate_user_jetton_wallet_address(my_address(), my_address(), jtn::wallet_code);
     swap::authentic_jwall_addr = in_msg_body~load_msg_addr();
-    jtn::content = constructor::build_content_cell();
     jtn::is_initialized? = -1;
 }
