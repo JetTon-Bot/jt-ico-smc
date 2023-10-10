@@ -11,7 +11,8 @@
     send_raw_message(msg.end_cell(), 1); ;; pay transfer fees separately, revert on errors
 }
 
-() ico::lock_tokens(slice in_msg_body) impure inline_ref {
+() ico::lock_tokens(slice in_msg_body, slice sender_addr) impure inline_ref {
+    throw_unless(ext::unknown_address, equal_slices(sender_addr, swap::authentic_jwall_addr));
     int amount = in_msg_body~load_coins();
     slice sender_addr = in_msg_body~load_msg_addr();
 

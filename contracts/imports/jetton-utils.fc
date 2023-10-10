@@ -1,10 +1,28 @@
-cell pack_jetton_wallet_data(int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code, cell locked_amounts) inline {
+cell pack_jetton_wallet_data(
+    int balance,
+    slice owner_address,
+    slice jetton_master_address,
+    cell jetton_wallet_code,
+    cell locked_amounts,
+    slice authentic_jetton_wallet,
+    slice authentic_master,
+    int authentic_balance,
+    cell authentic_wallet_code
+) inline {
     return begin_cell()
         .store_coins(balance)
         .store_slice(owner_address)
         .store_slice(jetton_master_address)
         .store_ref(jetton_wallet_code)
         .store_dict(locked_amounts)
+        .store_ref(
+            begin_cell()
+                .store_slice(authentic_jetton_wallet)
+                .store_slice(authentic_master)
+                .store_coins(authentic_balance)
+                .store_ref(authentic_wallet_code)
+            .end_cell()
+        )
         .end_cell();
 }
 

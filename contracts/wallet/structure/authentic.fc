@@ -1,0 +1,45 @@
+() authentic::constructor() inline_ref {
+    authentic::jetton_wallet = authentic::calculate_user_jetton_wallet_address(
+        my_address(),
+        authentic::master,
+        authentic::wallet_code
+    );
+}
+
+() authentic::process_transfer(slice in_msg_body, slice sender_address) impure inline_ref {
+    if (equal_slices(authentic::jetton_wallet, extlib::addr_none())) {
+        authentic::constructor();
+    }
+
+    if (~ equal_slices(authentic::jetton_wallet, sender_address)) {
+        save_data();
+        return ();
+    }
+
+    int query_id = in_msg_body~load_uint(64);
+    int amount = in_msg_body~load_coins();
+    authentic::balance += amount;
+    save_data();
+}
+
+() authentic::send(slice to, int amount) impure inline_ref {
+    cell body = begin_cell()
+        .store_uint(op::transfer, 32)
+        .store_uint(0, 64)
+        .store_coins(amount)
+        .store_slice(to)
+        .store_slice(to)
+        .store_int(0, 1)
+        .store_int(0, 1)
+    .end_cell();
+
+    cell msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(authentic::jetton_wallet)
+        .store_coins(coins::jetton_transfer)
+        .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(body)
+        .end_cell();
+
+    send_raw_message(msg, 2);
+}
