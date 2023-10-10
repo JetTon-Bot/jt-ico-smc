@@ -9,6 +9,8 @@ global cell jtn::wallet_code;
 
 global slice swap::authentic_jwall_addr; ;; 267 bits
 global slice swap::promise_jwall_addr; ;; 267 bits
+global slice swap::authentic_root; ;; 267 bits
+global cell  swap::authentic_wallet_code; ;; 1 ref
 
 global int ico::start_time; ;; 32 bits
 global int ico::end_time; ;; 32 bits
@@ -35,6 +37,8 @@ global int ico::redeemed_tokens; ;; 124 bits
 
     swap::authentic_jwall_addr = swap_data~load_msg_addr();
     swap::promise_jwall_addr = swap_data~load_msg_addr();  
+    swap::authentic_root = swap_data~load_msg_addr();
+    swap::authentic_wallet_code = swap_data~load_ref();
 
     slice ico_data = ds~load_ref().begin_parse();
 
@@ -49,40 +53,6 @@ global int ico::redeemed_tokens; ;; 124 bits
     ico::redeemed_tokens = coins_info~load_coins();
 
     init? = true;
-}
-
-cell storage::save_jtn_data() inline_ref {
-    return begin_cell()
-        .store_coins(jtn::total_supply)
-        .store_slice(jtn::regulator_address)
-        .store_ref(jtn::content)
-        .store_ref(jtn::wallet_code)
-    .end_cell();
-}
-
-cell storage::save_swap_data() inline_ref {
-    return begin_cell()
-        .store_slice(swap::authentic_jwall_addr)
-        .store_slice(swap::promise_jwall_addr)
-    .end_cell();
-}
-
-cell storage::save_ico_data() inline_ref {
-    cell data = begin_cell()
-        .store_ref(
-            begin_cell()
-                .store_uint(ico::start_time, 32)
-                .store_uint(ico::end_time, 32)
-            .end_cell()
-        )
-        .store_ref(
-            begin_cell()
-                .store_coins(ico::redeemed_tokens)
-            .end_cell()
-        ).end_cell();
-
-    
-    return data;
 }
 
 () storage::save() impure inline_ref {
@@ -101,6 +71,8 @@ cell storage::save_ico_data() inline_ref {
                 begin_cell()
                     .store_slice(swap::authentic_jwall_addr)
                     .store_slice(swap::promise_jwall_addr)
+                    .store_slice(swap::authentic_root)
+                    .store_ref(swap::authentic_wallet_code)
                 .end_cell()
             )
             .store_ref(

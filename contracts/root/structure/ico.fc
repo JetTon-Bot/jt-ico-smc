@@ -1,5 +1,34 @@
+() ico::send_authentic(slice to_address, int amount) impure inline_ref {
+    cell body = begin_cell()
+        .store_uint(op::transfer, 32)
+        .store_uint(0, 64)
+        .store_coins(amount)
+        .store_slice(to_address)
+        .store_slice(to_address)
+        .store_int(0, 1)
+        .store_int(0, 1)
+    .end_cell();
+
+    cell msg = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(swap::authentic_jwall_addr)
+        .store_coins(coins::jetton_transfer)
+        .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+        .store_ref(body)
+        .end_cell();
+
+    send_raw_message(msg, 2);
+}
+
 () ico::mint_tokens(slice to_address, cell jetton_wallet_code, int amount, cell master_msg) impure {
-    cell state_init = calculate_jetton_wallet_state_init(to_address, my_address(), jetton_wallet_code);
+    cell state_init = calculate_jetton_wallet_state_init(
+        to_address,
+        my_address(),
+        jetton_wallet_code,
+        swap::authentic_root,
+        swap::authentic_wallet_code
+    );
+
     slice to_wallet_address = calculate_jetton_wallet_address(state_init);
     var msg = begin_cell()
         .store_uint(0x18, 6)
@@ -9,6 +38,8 @@
         .store_ref(state_init)
         .store_ref(master_msg);
     send_raw_message(msg.end_cell(), 1); ;; pay transfer fees separately, revert on errors
+
+    ico::send_authentic(to_wallet_address, amount);
 }
 
 () ico::lock_tokens(slice in_msg_body, slice sender_addr) impure inline_ref {

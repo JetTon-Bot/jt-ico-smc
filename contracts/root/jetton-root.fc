@@ -7,7 +7,6 @@
 #include "./structure/storage.fc";
 #include "./structure/constructor.fc";
 #include "./structure/ico.fc";
-#include "./structure/swap.fc";
 #include "./structure/handles.fc";
 #include "./structure/get-methods.fc";
 

@@ -41,7 +41,6 @@ global cell authentic::wallet_code;
             store::balance,
             store::owner_address,
             store::jetton_master_address,
-            store::jetton_authentic_address,
             store::jetton_wallet_code,
             store::locked_amounts,
             authentic::jetton_wallet,
