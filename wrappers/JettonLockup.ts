@@ -24,6 +24,8 @@ export type JettonLockupConfig = {
     description: string;
     regulator: Address;
     walletCode: Cell,
+    authenticRoot: Address,
+    authenticWalletCode: Cell,
     startTime: number;
     endTime: number;
     maxMonths: number;
@@ -37,6 +39,8 @@ export type JettonGetInfo = {
     walletCode: Cell;
     authenticJwall: Address;
     promiseJwall: Address;
+    authenticRoot: Address;
+    authenticWalletCode: Cell;
     startTime: number;
     endTime: number;
     maxMonths: number;
@@ -83,6 +87,8 @@ export function jettonLockupConfigToCell(config: JettonLockupConfig): Cell {
             beginCell()
                 .storeAddress(null)
                 .storeAddress(null)
+                .storeAddress(config.authenticRoot)
+                .storeRef(config.authenticWalletCode)
             .endCell()
         )
         .storeRef(
@@ -203,6 +209,8 @@ export class JettonLockup implements Contract {
             walletCode: stack.readCell(),
             authenticJwall: stack.readAddress(),
             promiseJwall: stack.readAddress(),
+            authenticRoot: stack.readAddress(),
+            authenticWalletCode: stack.readCell(),
             startTime: stack.readNumber(),
             endTime: stack.readNumber(),
             maxMonths: stack.readNumber(),

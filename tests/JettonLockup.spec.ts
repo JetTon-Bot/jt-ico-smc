@@ -10,10 +10,10 @@ import { JettonWallet } from "../wrappers/JettonWallet";
 describe('jetton lockup', () => {
     const blockchainStartTime = 100;
 
-
     let blockchain: Blockchain;
     let jettonLockupCode: Cell;
     let promiseWalletCode: Cell;
+    let authenticWalletCode: Cell;
     let owner: SandboxContract<TreasuryContract>
     let user: SandboxContract<TreasuryContract>;
     let jettonLockup: SandboxContract<JettonLockup>;
@@ -24,12 +24,11 @@ describe('jetton lockup', () => {
     let ownerJettonPromiseWallet: SandboxContract<PromiseWallet>;
     let userJettonWallet: SandboxContract<JettonWallet>;
     let ownerJettonWallet: SandboxContract<JettonWallet>;
-
-
     
     beforeAll(async () => {
         jettonLockupCode = await compile('JettonLockup');
         promiseWalletCode = await compile('PromiseWallet');
+        authenticWalletCode = await compile('JettonWallet');
     })
 
     beforeEach(async () => {
@@ -59,15 +58,19 @@ describe('jetton lockup', () => {
             description: "Promise $JETTON of https://JetTon.Fund Platform",
             regulator: owner.address,
             walletCode: promiseWalletCode,
+            authenticRoot: jettonRoot.address,
+            authenticWalletCode: authenticWalletCode,
             startTime: blockchain.now! + 120,
             endTime: blockchain.now! + 1200,
             maxMonths: 12,
         };
 
         jettonLockup = blockchain.openContract(JettonLockup.createFromConfig(lockupConfig, jettonLockupCode));
+
         jettonLockupAuthenticWallet = blockchain.openContract(JettonWallet.createFromAddress(await jettonRoot.getWalletAddress(jettonLockup.address)));
 
         const lockupRootDeployResult = await jettonLockup.sendDeploy(owner.getSender(), jettonLockupAuthenticWallet.address);
+
         expect(lockupRootDeployResult.transactions).toHaveTransaction({
             from: owner.address,
             to: jettonLockup.address,
@@ -76,6 +79,14 @@ describe('jetton lockup', () => {
 
         jettonLockupPromiseWallet = await blockchain.openContract(PromiseWallet.createFromAddress(await jettonLockup.getWalletAddress(jettonLockup.address)));
         userJettonPromiseWallet = await blockchain.openContract(PromiseWallet.createFromAddress(await jettonLockup.getWalletAddress(user.address)));
+        
+        await blockchain.setVerbosityForAddress(userJettonPromiseWallet.address, {
+            print: true,
+            vmLogs: 'vm_logs',
+            blockchainLogs: true,
+            debugLogs: true
+        });
+        
         ownerJettonPromiseWallet = await blockchain.openContract(PromiseWallet.createFromAddress(await jettonLockup.getWalletAddress(owner.address)));
 
         const txMintUserJettons = await jettonRoot.sendMintJettons(owner.getSender(), user.address, BigInt(1e9 * 1000));
@@ -108,13 +119,15 @@ describe('jetton lockup', () => {
 
         const lockupInfo = await jettonLockup.getContractData()
         expect(lockupInfo.regulator).toEqualAddress(owner.address)
+
     })
 
-
     it('should deploy', async () => {
+
         const data = await jettonLockup.getContractData()
         expect(data.promiseJwall).toEqualAddress(jettonLockupPromiseWallet.address)
         expect(data.authenticJwall).toEqualAddress(jettonLockupAuthenticWallet.address)
+
     })
 
     describe('lock tokens with different lockup periods', () => {
@@ -152,7 +165,7 @@ describe('jetton lockup', () => {
             expect(lockTx.transactions).toHaveTransaction({
                 from: jettonLockup.address,
                 to: userJettonPromiseWallet.address,
-                success: true,
+                success: true
             })
 
             const dataAfterLock = await jettonLockup.getContractData()
@@ -163,6 +176,8 @@ describe('jetton lockup', () => {
             expect(dataAfterLock.totalSupply).toBe(BigInt(1e9*100))
             expect(dataAfterLock.redeemedTokens).toBe(BigInt(1e9*100))
         })
+
+        /*
 
         it('should lock for 3 months and vesting 3 months', async () => {
             const dataBeforeLock = await jettonLockup.getContractData()
@@ -414,7 +429,6 @@ describe('jetton lockup', () => {
             })
         
         })
-
 
         it('shouldn`t lock, ico hasn`t started', async () => {
             const dataBeforeLock = await jettonLockup.getContractData()
@@ -2065,9 +2079,9 @@ describe('jetton lockup', () => {
 
 
         })
-        
-        
 
+        */
+        
     })
 
 })

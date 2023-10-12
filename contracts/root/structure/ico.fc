@@ -53,7 +53,6 @@
         return ();
     } 
 
-
     slice fwd_payload = fwd_payload_c.begin_parse();
 
     int op = fwd_payload~load_uint(32);
@@ -87,6 +86,7 @@
             begin_cell()
                 .store_uint(time_now + lockup_period_seconds, 32)
                 .store_uint(time_now + lockup_period_seconds + lockup_period_seconds, 32)
+                .store_slice(authentic::calculate_jetton_wallet_address(authentic::calculate_jetton_wallet_state_init(sender_addr, )))
             .end_cell()
         )
         .store_uint(0, 1)
