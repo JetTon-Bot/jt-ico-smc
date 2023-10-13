@@ -131,6 +131,8 @@ describe('jetton lockup', () => {
     })
 
     describe('lock tokens with different lockup periods', () => {
+
+
         it('should lock for 5 mins and vesting 5 mins', async () => {
             const dataBeforeLock = await jettonLockup.getContractData()
             blockchain.now = dataBeforeLock.startTime
@@ -176,8 +178,6 @@ describe('jetton lockup', () => {
             expect(dataAfterLock.totalSupply).toBe(BigInt(1e9*100))
             expect(dataAfterLock.redeemedTokens).toBe(BigInt(1e9*100))
         })
-
-        /*
 
         it('should lock for 3 months and vesting 3 months', async () => {
             const dataBeforeLock = await jettonLockup.getContractData()
@@ -506,6 +506,8 @@ describe('jetton lockup', () => {
         })})
 
         describe('wallet tests', () => {
+            /*
+            
             it('should buy, and then shouldn`t transfer tokens', async () => {
                 const dataBeforeLock = await jettonLockup.getContractData()
                 blockchain.now = dataBeforeLock.startTime

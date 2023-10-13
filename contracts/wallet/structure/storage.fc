@@ -27,10 +27,10 @@ global cell authentic::wallet_code;
     store::locked_amounts = ds~load_dict();
 
     slice authentic_ref = ds~load_ref().begin_parse();
-    authentic::jetton_wallet = ds~load_msg_addr();
-    authentic::master = ds~load_msg_addr();
-    authentic::balance = ds~load_coins();
-    authentic::wallet_code = ds~load_ref();
+    authentic::jetton_wallet = authentic_ref~load_msg_addr();
+    authentic::master = authentic_ref~load_msg_addr();
+    authentic::balance = authentic_ref~load_coins();
+    authentic::wallet_code = authentic_ref~load_ref();
 
     initialized? = true;
 }
