@@ -15,6 +15,7 @@ global int authentic::balance;
 global cell authentic::wallet_code;
 
 () load_data() impure inline_ref {
+
     ifnot (null?(initialized?)) {
         return ();
     }
@@ -33,6 +34,7 @@ global cell authentic::wallet_code;
     authentic::wallet_code = authentic_ref~load_ref();
 
     initialized? = true;
+
 }
 
 () save_data() impure inline {
