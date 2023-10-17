@@ -5,8 +5,9 @@
         .store_coins(amount)
         .store_slice(to_address)
         .store_slice(to_address)
-        .store_int(0, 1)
-        .store_int(0, 1)
+        .store_dict(new_dict())
+        .store_coins(0)
+        .store_slice(begin_cell().store_uint(0, 1).end_cell().begin_parse())
     .end_cell();
 
     cell msg = begin_cell()

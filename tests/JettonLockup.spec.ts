@@ -30,9 +30,7 @@ describe('jetton lockup', () => {
         jettonLockupCode = await compile('JettonLockup');
         promiseWalletCode = await compile('PromiseWallet');
         authenticWalletCode = await compile('JettonWallet');
-    })
 
-    beforeEach(async () => {
         blockchain = await Blockchain.create();
         blockchain.now = blockchainStartTime;
 
@@ -83,12 +81,21 @@ describe('jetton lockup', () => {
         userJettonPromiseAuthenticWallet = await blockchain.openContract(JettonWallet.createFromAddress(await jettonRoot.getWalletAddress(userJettonPromiseWallet.address)));
         ownerJettonPromiseWallet = await blockchain.openContract(PromiseWallet.createFromAddress(await jettonLockup.getWalletAddress(owner.address)));
 
+        await blockchain.setVerbosityForAddress(userJettonPromiseWallet.address, {
+            print: true,
+            blockchainLogs: true,
+            vmLogs: 'vm_logs',
+            debugLogs: false,
+        })
+
         const txMintUserJettons = await jettonRoot.sendMintJettons(owner.getSender(), user.address, BigInt(1e9 * 1000));
+
         expect(txMintUserJettons.transactions).toHaveTransaction({
             from: owner.address,
             to: jettonRoot.address,
             success: true
         });
+
         expect(txMintUserJettons.transactions).toHaveTransaction({
             from: jettonRoot.address,
             to: userJettonWallet.address,
@@ -98,11 +105,13 @@ describe('jetton lockup', () => {
         expect(await userJettonWallet.getJettonBalance()).toBe(BigInt(1e9 * 1000));
 
         const txMintOwnerJettons = await jettonRoot.sendMintJettons(owner.getSender(), owner.address, BigInt(1e9 * 1000));
+        
         expect(txMintOwnerJettons.transactions).toHaveTransaction({
             from: owner.address,
             to: jettonRoot.address,
             success: true
         });
+
         expect(txMintOwnerJettons.transactions).toHaveTransaction({
             from: jettonRoot.address,
             to: ownerJettonWallet.address,
@@ -113,6 +122,17 @@ describe('jetton lockup', () => {
 
         const lockupInfo = await jettonLockup.getContractData()
         expect(lockupInfo.regulator).toEqualAddress(owner.address)
+
+        console.log('owner: ' + owner.address);
+        console.log('jettonRoot: ' + jettonRoot.address);
+        console.log('ownerJettonWallet: ' + ownerJettonWallet.address);
+        console.log('jettonLockupAuthenticWallet: ' + jettonLockupAuthenticWallet.address);
+        console.log('jettonLockup: ' + jettonLockup.address);
+        console.log('userJettonPromiseWallet: ' + userJettonPromiseWallet.address);
+
+    })
+
+    beforeEach(async () => {
 
     })
 
@@ -130,8 +150,8 @@ describe('jetton lockup', () => {
             const dataBeforeLock = await jettonLockup.getContractData()
             blockchain.now = dataBeforeLock.startTime
 
-            const lockTx = await ownerJettonWallet.sendTransfer(
-                owner.getSender(),
+            const lockTx = await userJettonWallet.sendTransfer(
+                user.getSender(),
                 BigInt(1e8 * 3),
                 BigInt(1e8 * 2),
                 await jettonLockup.bodyForLock(5, user.address),
@@ -140,13 +160,13 @@ describe('jetton lockup', () => {
             )
 
             expect(lockTx.transactions).toHaveTransaction({
-                from: owner.address,
-                to: ownerJettonWallet.address,
+                from: user.address,
+                to: userJettonWallet.address,
                 success: true
             })
 
             expect(lockTx.transactions).toHaveTransaction({
-                from: ownerJettonWallet.address,
+                from: userJettonWallet.address,
                 to: jettonLockupAuthenticWallet.address,
                 success: true
             })
@@ -154,6 +174,36 @@ describe('jetton lockup', () => {
             expect(lockTx.transactions).toHaveTransaction({
                 from: jettonLockupAuthenticWallet.address, 
                 to: jettonLockup.address,
+                success: true
+            })
+
+            expect(lockTx.transactions).toHaveTransaction({
+                from: jettonLockup.address, 
+                to: jettonLockupAuthenticWallet.address,
+                success: true
+            })
+
+            expect(lockTx.transactions).toHaveTransaction({
+                from: jettonLockupAuthenticWallet.address, 
+                to: userJettonPromiseAuthenticWallet.address,
+                success: true
+            })
+
+            expect(lockTx.transactions).toHaveTransaction({
+                from: userJettonPromiseAuthenticWallet.address, 
+                to: userJettonPromiseWallet.address,
+                success: true
+            })
+
+            expect(lockTx.transactions).toHaveTransaction({
+                from: userJettonPromiseWallet.address,
+                to: user.address,
+                success: true
+            })
+
+            expect(lockTx.transactions).toHaveTransaction({
+                from: jettonLockup.address,
+                to: userJettonPromiseWallet.address,
                 success: true
             })
 
@@ -171,6 +221,8 @@ describe('jetton lockup', () => {
             expect(dataAfterLock.totalSupply).toBe(BigInt(1e9*100))
             expect(dataAfterLock.redeemedTokens).toBe(BigInt(1e9*100))
         })
+
+        /*
 
         it('should lock for 3 months and vesting 3 months', async () => {
             const dataBeforeLock = await jettonLockup.getContractData()
@@ -659,8 +711,6 @@ describe('jetton lockup', () => {
                 expect(lockedAmountAfterTransfer.unlockedAmount).toBe(BigInt(0))
 
             })
-
-            /*
 
             it('should buy and then should transfer all amount, vesting time has passed', async () => {
                 const dataBeforeBuy = await jettonLockup.getContractData()

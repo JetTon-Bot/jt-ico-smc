@@ -32,6 +32,10 @@
 
     int op = in_msg_body~load_uint(32);
 
+    if (op == op::excesses) { ;; incoming transfer notification from userJettonPromiseAuthenticWallet
+        return ();
+    }
+
     if (op == op::transfer_notification) {
         authentic::process_transfer(in_msg_body, sender_address);
         return ();
