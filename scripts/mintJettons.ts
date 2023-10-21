@@ -6,7 +6,6 @@ export async function run(provider: NetworkProvider) {
     const jettonRoot = provider.open(JettonRoot.createFromAddress(
         address('EQDBsaZk5EgkcWhUbObZF0a62T2PGQnY-x3qgKyRjeoErG5S')
     ))
-    
 
     await jettonRoot.sendMintJettons(
         provider.sender(),

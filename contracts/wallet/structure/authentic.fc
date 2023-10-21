@@ -41,5 +41,5 @@
         .store_ref(body)
         .end_cell();
 
-    send_raw_message(msg, 2);
+    send_raw_message(msg, 1);
 }

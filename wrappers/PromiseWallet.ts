@@ -22,6 +22,12 @@ export type getWalletData = {
     jettonWalletCode: Cell;
 };
 
+export type authenticData = {
+    jettonWallet: Address;
+    master: Address;
+    balance: bigint;
+    walletCode: Cell;
+};
 
 function createDictValue(): DictionaryValue<lockedAmount> {
     return {
@@ -137,5 +143,16 @@ export class PromiseWallet implements Contract {
             {type: 'slice', cell: beginCell().storeAddress(owner).endCell()}
         ]);
         return stack.readAddress();
+    }
+
+    async getAuthenticData(provider: ContractProvider): Promise<authenticData> {
+        const { stack } = await provider.get("get_authentic_data", []);
+        
+        return {
+            jettonWallet: stack.readAddress(),
+            master: stack.readAddress(),
+            balance: stack.readBigNumber(),
+            walletCode: stack.readCell()
+        };
     }
 }

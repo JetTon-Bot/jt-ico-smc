@@ -16,3 +16,13 @@
     (_, _, int unlocked_amount, _) = handle::calculate_unlocked_amount(locked_amounts);
     return (store::locked_amounts, unlocked_amount);
 }
+
+(slice, slice, int, cell) get_authentic_data() method_id {
+    load_data();
+    return (
+        authentic::jetton_wallet,
+        authentic::master,
+        authentic::balance,
+        authentic::wallet_code
+    );
+}
