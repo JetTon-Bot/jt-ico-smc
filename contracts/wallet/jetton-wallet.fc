@@ -1,6 +1,3 @@
-;; Storage TL-B Scheme;
-;; storage#_ balance:Coins owner_address:MsgIntAddress jetton_master_address:MsgIntAddress jetton_wallet_code:^Cell locked_amounts:(HasmapE 16 LockInfo) = Storage;
-
 #include "../imports/stdlib.fc";
 #include "../imports/send-modes.fc";
 #include "../imports/constants.fc";
