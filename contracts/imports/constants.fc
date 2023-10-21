@@ -28,4 +28,6 @@ const int ext::invalid_lockup_period = 1010;
 
 const int coins::mint = 150000000;
 const int coins::for_storage = 500000000;
-const int coins::jetton_transfer = 50000000;
+const int coins::jetton_transfer = 100000000; ;; 0.10
+const int coins::notification_amount = 50000000; ;; 0.05
+const int coins::burn = 50000000;

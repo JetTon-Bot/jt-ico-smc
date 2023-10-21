@@ -6,8 +6,8 @@
         .store_slice(to_address)
         .store_slice(to_address)
         .store_dict(new_dict())
-        .store_coins(0)
-        .store_slice(begin_cell().store_uint(0, 1).end_cell().begin_parse())
+        .store_coins(coins::notification_amount)
+        .store_uint(0, 1)
     .end_cell();
 
     cell msg = begin_cell()
@@ -21,7 +21,7 @@
     send_raw_message(msg, 2);
 }
 
-() ico::mint_tokens(slice to_address, cell jetton_wallet_code, int amount, cell master_msg) impure {
+() ico::mint_tokens(slice to_address, cell jetton_wallet_code, int amount, cell master_msg, int jetton_amount) impure {
     cell state_init = calculate_jetton_wallet_state_init(
         to_address,
         my_address(),
@@ -40,13 +40,13 @@
         .store_ref(master_msg);
     send_raw_message(msg.end_cell(), 1); ;; pay transfer fees separately, revert on errors
 
-    ico::send_authentic(to_wallet_address, amount);
+    ico::send_authentic(to_wallet_address, jetton_amount);
 }
 
 () ico::lock_tokens(slice in_msg_body, slice sender_addr) impure inline_ref {
     throw_unless(ext::unknown_address, equal_slices(sender_addr, swap::authentic_jwall_addr));
     int amount = in_msg_body~load_coins();
-    slice sender_addr = in_msg_body~load_msg_addr();
+    slice sender_address = in_msg_body~load_msg_addr();
 
     cell fwd_payload_c = in_msg_body~load_maybe_ref();
 
@@ -94,7 +94,7 @@
 
     throw_if(ext::invalid_lockup_period, (time_now + lockup_period_seconds) == (time_now + lockup_period_seconds + lockup_period_seconds));
 
-    ico::mint_tokens(receiver_address, jtn::wallet_code, coins::mint, master_msg);
+    ico::mint_tokens(receiver_address, jtn::wallet_code, coins::mint, master_msg, amount);
 
     ico::redeemed_tokens += amount;
     jtn::total_supply += amount;

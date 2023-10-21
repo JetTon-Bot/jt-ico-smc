@@ -32,15 +32,6 @@
 
     int op = in_msg_body~load_uint(32);
 
-    if (op == op::excesses) { ;; incoming transfer notification from userJettonPromiseAuthenticWallet
-        return ();
-    }
-
-    if (op == op::transfer_notification) {
-        authentic::process_transfer(in_msg_body, sender_address);
-        return ();
-    }
-
     if (op == op::transfer) { ;; outgoing transfer
         handle::send_tokens(in_msg_body, sender_address, msg_value, fwd_fee);
         return ();
@@ -53,6 +44,10 @@
 
     if (op == op::burn) { ;; burn
         handle::burn_tokens(in_msg_body, sender_address, msg_value, fwd_fee);
+        return ();
+    }
+
+    if ((op == op::excesses) | (op == op::transfer_notification)) { ;; incoming transfer notification from userJettonPromiseAuthenticWallet
         return ();
     }
 
