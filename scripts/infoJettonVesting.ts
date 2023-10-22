@@ -13,5 +13,6 @@ export async function run(provider: NetworkProvider) {
         
     }
     console.log(await jettonLockup.getJettonBalance())
+    console.log(await jettonLockup.getAuthenticData())
     
 }
