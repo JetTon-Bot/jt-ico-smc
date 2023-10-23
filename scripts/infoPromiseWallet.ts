@@ -19,5 +19,6 @@ export async function run(provider: NetworkProvider) {
     }
 
     console.log(await userJettonPromiseWallet.getAuthenticData())
-    
+    console.log(await userJettonPromiseWallet.getLockupsData())
+
 }
