@@ -3975,7 +3975,7 @@ describe('jetton lockup', () => {
 
     describe('test lockups data', () => {
 
-        it('should swap 25% of the unlocked amount to authentic JetTon, then swap rest 75%', async () => {
+        it('should have relevant lockups history and last recieved data', async () => {
             const dataBeforeLock = await jettonLockup.getContractData()
             blockchain.now = dataBeforeLock.startTime
 
