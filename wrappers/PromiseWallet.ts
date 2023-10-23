@@ -32,7 +32,6 @@ export type authenticData = {
 export type lockupsData = {
     tokensAvailable: bigint;
     tokensLocked: bigint;
-    lastRecieved: number;
     lockupsHistory: lockedAmount[];
 };
 
@@ -168,7 +167,6 @@ export class PromiseWallet implements Contract {
 
         const tokensAvailable = stack.readBigNumber();
         const tokensLocked = stack.readBigNumber();
-        const lastRecieved = stack.readNumber();
 
         let lockedAmounts: lockedAmount[];
 
@@ -181,7 +179,6 @@ export class PromiseWallet implements Contract {
         return {
             tokensAvailable,
             tokensLocked,
-            lastRecieved,
             lockupsHistory: lockedAmounts,
         }
     }

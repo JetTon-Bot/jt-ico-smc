@@ -27,31 +27,17 @@
     );
 }
 
-(int, int, int, cell) get_lockups_data() method_id {
+(int, int, cell) get_lockups_data() method_id {
 
     load_data();
 
     cell locked_amounts = store::locked_amounts;
 
-    (cell locked_amounts, int next_index, int unlocked_amount_total, int locked_amount_total) = handle::calculate_unlocked_amount(locked_amounts);
-
-    (slice value, int f?) = store::locked_amounts.udict_get?(16, next_index - 1);
-
-    if (f?) {
-        value~load_uint(32); ;; skip start_unlock_time 32 bits
-        value~load_uint(32); ;; skip end_unlock_time 32 bits
-        int last_received = value~load_uint(32); ;; 32 bits
-        value~load_coins(); ;; skip locked_amount 124 bits
-        value~load_coins(); ;; skip unlocked_amount 124 bits
-
-    }
-
-    int temporary_unix_time = 1698059348;
+    (locked_amounts, _, int unlocked_amount, int locked_amount) = handle::calculate_unlocked_amount(locked_amounts);
 
     return (
-        unlocked_amount_total, ;; tokens available
-        locked_amount_total,;; tokens locked
-        temporary_unix_time, ;; last received
-        store::locked_amounts ;; lock history
+        store::balance + unlocked_amount, ;; tokens available
+        locked_amount - unlocked_amount - store::balance, ;; tokens locked
+        locked_amounts ;; lock history
     );
 }

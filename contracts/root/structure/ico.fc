@@ -77,7 +77,7 @@
     raw_reserve(coins::for_storage + coins::mint, 0);
 
     cell master_msg = begin_cell()
-        .store_uint(0x178d4519, 32)
+        .store_uint(op::internal_transfer, 32)
         .store_uint(cur_lt(), 64)
         .store_coins(amount)
         .store_slice(receiver_address)
