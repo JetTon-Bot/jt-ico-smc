@@ -35,7 +35,7 @@
 
     return (
         store::balance + unlocked_amount, ;; tokens available
-        locked_amount - store::balance, ;; tokens locked
+        locked_amount, ;; tokens locked
         store::locked_amounts ;; lock history
     );
 }

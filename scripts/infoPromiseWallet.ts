@@ -5,14 +5,12 @@ import { PromiseWallet } from '../wrappers/PromiseWallet';
 
 export async function run(provider: NetworkProvider) {
 
-    const jettonLockup = provider.open(JettonLockup.createFromAddress(address('EQAr-as5bebuOkARzPMFVFP2KL-kFf0oBxNTEF4KuDp1HbXm')))
 
-    const userJettonPromiseWallet = provider.open(PromiseWallet.createFromAddress(await jettonLockup.getWalletAddress(provider.sender().address as Address)));
+    const userJettonPromiseWallet = provider.open(PromiseWallet.createFromAddress(address('EQAnWpfowuPUfPBbp7rummH-dIknkvxa8kdVDH80ahPWw0Uy')))
 
     // console.log(await jettonLockup.getUnlockedAmount())
     try {
 
-        console.log(await userJettonPromiseWallet.getUnlockedAmount())
 
     } catch (e) {
         

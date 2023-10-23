@@ -82,7 +82,9 @@ export class JettonRoot implements Contract {
 
     async getWalletCode(provider: ContractProvider) {
         const { stack } = await provider.get("get_jetton_data", []);
+        console.log(stack)
 
+        stack.pop()
         stack.pop()
         stack.pop()
         stack.pop()
