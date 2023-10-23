@@ -29,6 +29,13 @@ export type authenticData = {
     walletCode: Cell;
 };
 
+export type lockupsData = {
+    tokensAvailable: bigint;
+    tokensLocked: bigint;
+    lastRecieved: number;
+    lockupsHistory: lockedAmount[];
+};
+
 function createDictValue(): DictionaryValue<lockedAmount> {
     return {
         serialize: (src, builder) => {
@@ -155,4 +162,28 @@ export class PromiseWallet implements Contract {
             walletCode: stack.readCell()
         };
     }
+
+    async getLockupsData(provider: ContractProvider): Promise<lockupsData> {
+        const { stack } = await provider.get("get_lockups_data", []);
+
+        const tokensAvailable = stack.readBigNumber();
+        const tokensLocked = stack.readBigNumber();
+        const lastRecieved = stack.readNumber();
+
+        let lockedAmounts: lockedAmount[];
+
+        try {
+            lockedAmounts = stack.readCell().beginParse().loadDictDirect(Dictionary.Keys.Uint(16), createDictValue()).values();
+        } catch {
+            lockedAmounts = [];
+        }
+
+        return {
+            tokensAvailable,
+            tokensLocked,
+            lastRecieved,
+            lockupsHistory: lockedAmounts,
+        }
+    }
+
 }

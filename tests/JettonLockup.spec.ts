@@ -502,6 +502,7 @@ describe('jetton lockup', () => {
             expect(lockedAmounts.lockedAmounts[0].startUnlockTime).toBe(blockchain.now+12*31*24*60*60);
             expect(lockedAmounts.lockedAmounts[0].endUnlockTime).toBe(blockchain.now+12*31*24*60*60*2);
 
+
             const dataAfterLock = await jettonLockup.getContractData();
             expect(dataAfterLock.totalSupply).toBe(BigInt(1e9*100));
             expect(dataAfterLock.redeemedTokens).toBe(BigInt(1e9*100));
@@ -1750,6 +1751,12 @@ describe('jetton lockup', () => {
             expect(lockedAmounts.lockedAmounts[0].lockedAmount).toBe(BigInt(1e9*100))
             expect(lockedAmounts.lockedAmounts[0].startUnlockTime).toBe(blockchain.now+5*60);
             expect(lockedAmounts.lockedAmounts[0].endUnlockTime).toBe(blockchain.now+5*60*2);
+
+            // temporary get_lockups_data() test
+            const lockupsData = await userJettonPromiseWallet.getLockupsData();
+            expect(lockupsData.tokensAvailable).toBe(BigInt(0));
+            expect(lockupsData.tokensLocked).toBe(BigInt(1e9 * 100));
+            expect(lockupsData.lastRecieved).toBe(Number(1698059348));
 
             const dataAfterLock = await jettonLockup.getContractData();
             expect(dataAfterLock.totalSupply).toBe(BigInt(1e9*100));
