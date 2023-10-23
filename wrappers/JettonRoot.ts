@@ -79,4 +79,13 @@ export class JettonRoot implements Contract {
         ]);
         return stack.readAddress();
     }
+
+    async getWalletCode(provider: ContractProvider) {
+        const { stack } = await provider.get("get_jetton_data", []);
+
+        stack.pop()
+        stack.pop()
+        stack.pop()
+        return stack.readCell()
+    }
 }

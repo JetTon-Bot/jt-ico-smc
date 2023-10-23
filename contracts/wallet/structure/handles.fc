@@ -18,7 +18,6 @@
             int locked_amount = value~load_coins(); ;; max 124 bits
             int unlocked_amount = value~load_coins(); ;; max 124 bits
 
-            locked_amount_total += (locked_amount - unlocked_amount);
 
             int tokens_per_second = locked_amount / (end_unlock_time - start_unlock_time); 
             if ((cur_time > start_unlock_time) & (cur_time > last_received) & (cur_time < end_unlock_time)) {
@@ -48,8 +47,10 @@
             } elseif(cur_time >= end_unlock_time) {
                 int tokens_unlocked = locked_amount - unlocked_amount;
                 unlocked_amount_total += tokens_unlocked;
+                locked_amount_total -= (locked_amount - unlocked_amount);
                 (locked_amounts, _) = locked_amounts.udict_delete?(16, k);
             }
+            locked_amount_total += (locked_amount - unlocked_amount);
 
             next_index = k + 1;
         }

@@ -4029,6 +4029,77 @@ describe('jetton lockup', () => {
 
         })
 
+        it('receive jettons, and then withdraw some jettons, and then withdraw all', async () => {
+            const dataBeforeLock = await jettonLockup.getContractData()
+            blockchain.now = dataBeforeLock.startTime
+
+            await ownerJettonWallet.sendTransfer(
+                owner.getSender(),
+                BigInt(1e8 * 3),
+                BigInt(1e8 * 2),
+                await jettonLockup.bodyForLock(5, user.address),
+                jettonLockup.address,
+                BigInt(1e9 * 100)
+            )
+
+            const lockupsDataBefore = await userJettonPromiseWallet.getLockupsData();
+
+            expect(lockupsDataBefore.tokensAvailable).toBe(BigInt(0));
+            expect(lockupsDataBefore.tokensLocked).toBe(BigInt(1e9 * 100));
+
+            expect(lockupsDataBefore.lockupsHistory[0].startUnlockTime).toBe(blockchain.now+5*60);
+            expect(lockupsDataBefore.lockupsHistory[0].endUnlockTime).toBe(blockchain.now+5*60*2);
+            expect(lockupsDataBefore.lockupsHistory[0].lastReceived).toBe(0);
+            expect(lockupsDataBefore.lockupsHistory[0].lockedAmount).toBe(BigInt(1e9*100));
+            expect(lockupsDataBefore.lockupsHistory[0].unlockedAmount).toBe(BigInt(0));
+
+            blockchain.now += 6*60
+
+            const lockupsDataAfterFirstTime = await userJettonPromiseWallet.getLockupsData();
+            console.log(lockupsDataAfterFirstTime.tokensAvailable/BigInt(1e9))
+            console.log(lockupsDataAfterFirstTime.tokensLocked/BigInt(1e9))
+
+            expect(lockupsDataAfterFirstTime.lockupsHistory[0].startUnlockTime).toBe(lockupsDataBefore.lockupsHistory[0].startUnlockTime);
+            expect(lockupsDataAfterFirstTime.lockupsHistory[0].endUnlockTime).toBe(lockupsDataBefore.lockupsHistory[0].endUnlockTime);
+            expect(lockupsDataAfterFirstTime.lockupsHistory[0].lastReceived).toBe(0);
+            expect(lockupsDataAfterFirstTime.lockupsHistory[0].lockedAmount).toBe(BigInt(1e9*100));
+            expect(lockupsDataAfterFirstTime.lockupsHistory[0].unlockedAmount).toBe(BigInt(0));
+
+            await userJettonPromiseWallet.sendBurn(
+                user.getSender(),
+                BigInt(1e9 * 3),
+                jettonLockup.address,
+                lockupsDataAfterFirstTime.tokensAvailable
+            )
+
+            const lockupsDataAfterBurn = await userJettonPromiseWallet.getLockupsData();
+            console.log(lockupsDataAfterBurn.tokensAvailable/BigInt(1e9))
+            console.log(lockupsDataAfterBurn.tokensLocked/BigInt(1e9))
+
+            console.log(lockupsDataAfterBurn.lockupsHistory)
+
+            blockchain.now = lockupsDataAfterBurn.lockupsHistory[0].endUnlockTime + 10000
+
+
+            const lockupsDataAfterSecondTime = await userJettonPromiseWallet.getLockupsData();
+            console.log(lockupsDataAfterSecondTime.tokensAvailable/BigInt(1e9))
+            console.log(lockupsDataAfterSecondTime.tokensLocked/BigInt(1e9))
+
+            console.log(lockupsDataAfterSecondTime.lockupsHistory)
+
+            await userJettonPromiseWallet.sendBurn(
+                user.getSender(),
+                BigInt(1e9 * 3),
+                jettonLockup.address,
+                lockupsDataAfterSecondTime.tokensAvailable
+            )
+
+            const lockupsDataAfterSecondBurn = await userJettonPromiseWallet.getLockupsData();
+            console.log(lockupsDataAfterSecondBurn.tokensAvailable/BigInt(1e9))
+            console.log(lockupsDataAfterSecondBurn.tokensLocked/BigInt(1e9))
+
+            console.log(lockupsDataAfterSecondBurn.lockupsHistory)
+        })
     })
 })
 
