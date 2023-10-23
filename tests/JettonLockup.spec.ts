@@ -3974,7 +3974,6 @@ describe('jetton lockup', () => {
     })
 
     describe('test lockups data', () => {
-
         it('should have relevant lockups history and last recieved data', async () => {
             const dataBeforeLock = await jettonLockup.getContractData()
             blockchain.now = dataBeforeLock.startTime
@@ -4020,7 +4019,7 @@ describe('jetton lockup', () => {
 
             expect(lockupsDataAfter.lockupsHistory[0].startUnlockTime).toBe(220 + 5*60);
             expect(lockupsDataAfter.lockupsHistory[0].endUnlockTime).toBe(220 + 5*60*2);
-            expect(lockupsDataAfter.lockupsHistory[0].lastReceived).toBe(220 + 6*60);
+            expect(lockupsDataAfter.lockupsHistory[0].lastReceived).toBe(0);
 
             expect(lockupsDataBefore.lockupsHistory[1].startUnlockTime).toBe(220 + 3*31*24*60*60);
             expect(lockupsDataBefore.lockupsHistory[1].endUnlockTime).toBe(220 + 3*31*24*60*60*2);

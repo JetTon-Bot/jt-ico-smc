@@ -28,16 +28,13 @@
 }
 
 (int, int, cell) get_lockups_data() method_id {
-
     load_data();
 
-    cell locked_amounts = store::locked_amounts;
-
-    (locked_amounts, _, int unlocked_amount, int locked_amount) = handle::calculate_unlocked_amount(locked_amounts);
+    (_, _, int unlocked_amount, int locked_amount) = handle::calculate_unlocked_amount(store::locked_amounts);
 
     return (
         store::balance + unlocked_amount, ;; tokens available
         locked_amount - unlocked_amount - store::balance, ;; tokens locked
-        locked_amounts ;; lock history
+        store::locked_amounts ;; lock history
     );
 }
